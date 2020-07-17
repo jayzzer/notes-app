@@ -6,7 +6,7 @@
 
         <div class="nav-buttons">
           <router-link to="/notes/new">
-            <RoundButton>+</RoundButton>
+            <RoundButton color="white">+</RoundButton>
           </router-link>
         </div>
       </div>

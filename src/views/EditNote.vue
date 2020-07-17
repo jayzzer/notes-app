@@ -6,14 +6,21 @@
 
     <div id="edit-form">
       <form>
+        <div
+          v-show="errorText"
+          class="form-item error"
+        >
+          {{ errorText }}
+        </div>
         <div class="form-item">
           <label for="name-input">
             Название
           </label>
           <input
             id="name-input"
+            key="name"
             type="text"
-            v-model="name"
+            v-model="note.name"
           >
         </div>
         <div class="form-item">
@@ -23,7 +30,7 @@
           <ul class="todo-list">
             <li
               class="todo"
-              v-for="(todo, i) in todos"
+              v-for="(todo, i) in note.todos"
               :key="i"
             >
               <Checkbox v-model="todo.checked"/>
@@ -31,6 +38,7 @@
               <label class="todo-text">
                 <input
                   type="text"
+                  :key="todo.i"
                   v-model="todo.text"
                 >
               </label>
@@ -56,26 +64,45 @@
         <div class="control-btns">
           <button
             class="btn btn-green"
-            type="submit"
+            @click.prevent="save"
           >
             Сохранить
           </button>
-          <button class="btn btn-red">Отменить</button>
+          <button
+            class="btn btn-red"
+            @click.prevent="showDialog = true"
+          >
+            Отменить
+          </button>
         </div>
       </form>
     </div>
+
+    <ConfirmDialog
+      :show="showDialog"
+      :on-confirm="cancel"
+      :on-cancel="() => showDialog = false"
+    >
+      Вы уверены?
+    </ConfirmDialog>
   </div>
 </template>
 
 <script>
-import Checkbox from './Checkbox.vue';
+import { mapActions } from 'vuex';
+import Checkbox from '../components/ui-elements/Checkbox.vue';
+import ConfirmDialog from '../components/ui-elements/ConfirmDialog.vue';
 
 export default {
   name: 'EditNote',
-  components: { Checkbox },
+  components: { ConfirmDialog, Checkbox },
   data: () => ({
-    name: '',
-    todos: [],
+    note: {
+      name: '',
+      todos: [],
+    },
+    errorText: '',
+    showDialog: false,
   }),
   computed: {
     isNewNote() {
@@ -83,23 +110,65 @@ export default {
     },
   },
   methods: {
+    ...mapActions([
+      'saveNote',
+    ]),
     addTodo() {
-      this.todos.push({
+      this.note.todos.push({
         text: '',
         checked: false,
       });
     },
     removeTodo(index) {
-      this.todos.splice(index, 1);
+      this.note.todos.splice(index, 1);
+    },
+    async save() {
+      this.note.name = this.note.name.trim();
+      if (!this.note.name.length) {
+        this.errorText = 'Название не может быть пустым';
+        return;
+      }
+
+      if (!this.note.todos.length) {
+        this.errorText = 'Необходимо добавить хотя бы один todo пункт';
+        return;
+      }
+
+      await this.saveNote(this.note);
+
+      this.$router.history.push('/');
+    },
+    cancel() {
+      this.showDialog = false;
+      this.$router.history.push('/');
     },
   },
-  beforeCreate() {
+  async created() {
     if (this.isNewNote) {
-      // eslint-disable-next-line no-useless-return
       return;
     }
 
-    // request to db for note data
+    const noteId = this.$route.params.id;
+    let { notes } = this.$store.state;
+    if (!notes.length) {
+      await this.$store.dispatch('getNotes');
+      notes = this.$store.state.notes;
+    }
+
+    const note = notes[noteId];
+    if (!note) {
+      this.$router.history.push('/notes/new');
+      return;
+    }
+
+    this.note = note;
+  },
+  beforeRouteLeave(from, to, next) {
+    this.note = {
+      name: '',
+      todos: [],
+    };
+    next();
   },
 };
 </script>
@@ -229,6 +298,8 @@ export default {
 
     border: none;
     border-radius: 5px;
+
+    cursor: pointer;
   }
 
   .btn-block {
@@ -256,6 +327,16 @@ export default {
   }
 
   .btn-red:hover {
+    background-color: #c0392b;
+  }
+
+  .error {
+    text-align: center;
+    padding: 10px;
+    border: 5px solid #e74c3c;
+    border-radius: 5px;
+    font-weight: bold;
+    color: #fff;
     background-color: #c0392b;
   }
 </style>

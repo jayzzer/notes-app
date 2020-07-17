@@ -47,7 +47,7 @@ export default {
 
     return new Promise((resolve) => {
       const trans = db.transaction([STORAGE_NAME], 'readonly');
-      const notes = [];
+      const notes = {};
       trans.oncomplete = () => {
         resolve(notes);
       };
@@ -56,7 +56,7 @@ export default {
       store.openCursor().onsuccess = (e) => {
         const cursor = e.target.result;
         if (cursor) {
-          notes.push(cursor.value);
+          notes[cursor.value.id] = cursor.value;
           cursor.continue();
         }
       };

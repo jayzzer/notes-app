@@ -12,6 +12,10 @@ export default {
   computed: {
     columnClasses() {
       const classes = [];
+      if (this.xs) {
+        classes.push(`xs-${this.xs}`);
+      }
+
       if (this.sm) {
         classes.push(`sm-${this.sm}`);
       }
@@ -28,6 +32,7 @@ export default {
     },
   },
   props: {
+    xs: Number,
     sm: Number,
     md: Number,
     lg: Number,
@@ -40,28 +45,54 @@ export default {
     padding: 10px;
   }
 
-  .column.sm-1 {
+  .column.xs-1 {
     flex: 0 0 16.66667%;
   }
 
-  .column.sm-2 {
+  .column.xs-2 {
     flex: 0 0 33.33333%;
   }
 
-  .column.sm-3 {
+  .column.xs-3 {
     flex: 0 0 50%;
   }
 
-  .column.sm-4 {
+  .column.xs-4 {
     flex: 0 0 66.66667%;
   }
 
-  .column.sm-5 {
+  .column.xs-5 {
     flex: 0 0 83.33333%;
   }
 
-  .column.sm-6 {
+  .column.xs-6 {
     flex: 0 0 100%;
+  }
+
+  @media (min-width: 425px) {
+    .column.sm-1 {
+      flex: 0 0 16.66667%;
+    }
+
+    .column.sm-2 {
+      flex: 0 0 33.33333%;
+    }
+
+    .column.sm-3 {
+      flex: 0 0 50%;
+    }
+
+    .column.sm-4 {
+      flex: 0 0 66.66667%;
+    }
+
+    .column.sm-5 {
+      flex: 0 0 83.33333%;
+    }
+
+    .column.sm-6 {
+      flex: 0 0 100%;
+    }
   }
 
   @media (min-width: 768px) {
